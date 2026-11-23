@@ -5,15 +5,12 @@ use multiaddr::Multiaddr;
 use sui_config::ValidatorInfo;
 use sui_core::authority::AuthorityState;
 use sui_core::authority_active::checkpoint_driver::CheckpointMetrics;
-use sui_core::authority_client::AuthorityAPI;
 use sui_core::checkpoints::CHECKPOINT_COUNT_PER_EPOCH;
-use sui_core::safe_client::SafeClient;
 use sui_node::SuiNode;
-use sui_types::base_types::{ExecutionDigests, ObjectID, ObjectRef};
+use sui_types::base_types::{ExecutionDigests, ObjectRef};
 use sui_types::crypto::{get_key_pair, AuthorityKeyPair, KeypairTraits};
 use sui_types::error::SuiResult;
-use sui_types::messages::ObjectInfoResponse;
-use sui_types::messages::{CallArg, ObjectArg, ObjectInfoRequest, TransactionEffects};
+use sui_types::messages::{CallArg, ObjectArg, TransactionEffects};
 use sui_types::messages_checkpoint::{
     AuthenticatedCheckpoint, CertifiedCheckpointSummary, CheckpointContents,
     CheckpointSequenceNumber, SignedCheckpointSummary,
@@ -215,23 +212,4 @@ pub fn get_new_validator() -> ValidatorInfo {
         narwhal_worker_to_worker: sui_config::utils::new_network_address(),
         narwhal_consensus_address: sui_config::utils::new_network_address(),
     }
-}
-
-#[allow(dead_code)]
-pub async fn get_latest_ref<A>(authority: &SafeClient<A>, object_id: ObjectID) -> ObjectRef
-where
-    A: AuthorityAPI + Send + Sync + Clone + 'static,
-{
-    if let Ok(ObjectInfoResponse {
-        requested_object_reference: Some(object_ref),
-        ..
-    }) = authority
-        .handle_object_info_request(ObjectInfoRequest::latest_object_info_request(
-            object_id, None,
-        ))
-        .await
-    {
-        return object_ref;
-    }
-    panic!("Object not found!");
 }
